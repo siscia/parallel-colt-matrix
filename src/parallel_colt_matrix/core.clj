@@ -65,7 +65,9 @@ I assumed 0 for colunms 1 for rows"
   (set-1d [m row v]
     (throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
   (set-2d [m row column v]
-    (.set m row column v)) ;;We could use .setQuick but then we need
+    (let [other (.copy m)]  ;;Keeping immutability
+      (.set other row column v)
+      other)) ;;We could use .setQuick but then we need
   ;;to add a pre-condition to check if the index is in the bound, and
   ;;I guess it will be slower than simply use .set
   (set-nd [m indexes v]
