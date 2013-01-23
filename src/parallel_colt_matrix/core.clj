@@ -26,6 +26,10 @@
      Shape must be a sequence of dimension sizes."
     (throw (Exception. "Only 2D matrix, use new-matrix")))
 
+   (supports-dimensionality? [m dimensions]
+     "Returns true if the implementation supports matrices with the given number of dimensions."
+     (== 2 dimensions))
+
   PDimensionInfo
   (dimensionality [m] 
     "Returns the number of dimensions of a matrix"
@@ -56,12 +60,6 @@ I assumed 0 for colunms 1 for rows"
   (get-nd [m indexes]
     (throw (Exception. "It is only a 2D Array")))
 
-  PCoercion
-  (coerce-param [m param]
-    "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
-     May return nil if unable to do so, in which case a default implementation can be used."
-    nil)
-
   PIndexedSetting
   (set-1d [m row v]
     (throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
@@ -73,23 +71,29 @@ I assumed 0 for colunms 1 for rows"
   ;;I guess it will be slower than simply use .set
   (set-nd [m indexes v]
     (throw (Exception. "It is a 2D matrix, no other dimension, use set-2d(!)")))
+  (is-mutable? [m]
+    true)
+  
+  ;; PSpecialisedConstructors
+  ;; (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"
+  ;;   (DenseDoubleMatrix2D. dims dims)) ;;Ready just wait for
+  ;; protocols to be updated in clojars
+  ;; (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values") ;;TODO USE SPARSE ?
 
+  PCoercion
+  (coerce-param [m param]
+    "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
+     May return nil if unable to do so, in which case a default implementation can be used."
+    nil)
+  
   PMatrixEquality
   (matrix-equals [a b]
     (.equals a b))
-
-  PMatrixAdd
-  (matrix-add [m a]
-    (assert (= (get-shape m) (get-shape a)))
-    (let [sum (. DoubleFunctions plus)
-          other (.copy m)]
-      (.assign other a sum)))
-
-  (matrix-sub [m a]
-    (assert (= (get-shape m) (get-shape a)))
-    (let [minus (. DoubleFunctions minus)
-          other (.copy m)]
-      (.assign other a minus)))
+  
+  ;; PAssignment ;;TODO
+  ;; "Protocol for assigning values to mutable matrices."
+  ;; (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
+  ;; (assign! [m source] "Sets all the values in a matrix from a matrix source")
 
   PMatrixMultiply
   (matrix-multiply [m a]
@@ -98,6 +102,37 @@ I assumed 0 for colunms 1 for rows"
     (let [multiplier (. DoubleFunctions mult a)
           other (.copy m)]
       (.assign other multiplier)))
+
+  ;; PVectorTransform ;;TODO
+  ;; "Protocol to support transformation of a vector to another vector. 
+  ;;  Is equivalent to matrix multiplication when 2D matrices are used as transformations.
+  ;;  But other transformations are possible, e.g. affine transformations."
+  ;; (vector-transform [m v] "Transforms a vector")
+  ;; (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument")
+
+  ;; PMatrixScaling ;;TODO
+  ;; "Protocol to support matrix scaling by scalar values"
+  ;; (scale [m a])
+  ;; (pre-scale [m a])
+  
+  PMatrixAdd
+  (matrix-add [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [sum (. DoubleFunctions plus)
+          other (.copy m)]
+      (.assign other a sum)))
+  (matrix-sub [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [minus (. DoubleFunctions minus)
+          other (.copy m)]
+      (.assign other a minus)))
+
+  ;; PVectorOps ;;TODO
+  ;; "Protocol to support common vector operations."
+  ;; (vector-dot [a b])
+  ;; (length [a])
+  ;; (length-squared [a])
+  ;; (normalise [a])
 
   PMatrixOps
   (trace [m]
@@ -109,6 +144,31 @@ I assumed 0 for colunms 1 for rows"
   (negate [m]
     (element-multiply m -1))
   (transpose [m]
-    (.transpose (DenseDoubleAlgebra.) m)))
+    (.transpose (DenseDoubleAlgebra.) m))
+
+  ;; PMathsFunctions ;;TODO
+
+  ;; PMatrixSlices ;;TODO
+  ;; "Protocol to support getting slices of a matrix"
+  ;; (get-row [m i])
+  ;; (get-column [m i])
+  ;; (get-major-slice [m i])
+  ;; (get-slice [m dimension i])
+
+  ;; PFunctionalOperations  ;;TODO
+  ;; "Protocol to allow functional-style operations on matrix elements."
+  ;; ;; note that protocols don't like variadic args, so we convert to regular args
+  ;; (element-seq [m])
+  ;; (element-map [m f]
+  ;;              [m f a]
+  ;;              [m f a more])
+  ;; (element-map! [m f]
+  ;;               [m f a]
+  ;;               [m f a more])
+  ;; (element-reduce [m f] [m f init])
+
+  PConversion
+  (convert-to-nested-vectors [m]
+    (->> (.toArray m) (map vec) vec)))
 
 (imp/register-implementation (DenseDoubleMatrix2D. 2 2))
