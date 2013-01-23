@@ -2,7 +2,8 @@
   (:use [core.matrix.protocols])
   (:require [core.matrix.implementations :as imp])
   (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D])
-  (:import [cern.jet.math.tdouble DoubleFunctions]))
+  (:import [cern.jet.math.tdouble DoubleFunctions])
+  (:import [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
 
 
 (extend-type DenseDoubleMatrix2D
@@ -96,6 +97,18 @@ I assumed 0 for colunms 1 for rows"
   (element-multiply [m a]
     (let [multiplier (. DoubleFunctions mult a)
           other (.copy m)]
-      (.assign other multiplier))))
+      (.assign other multiplier)))
+
+  PMatrixOps
+  (trace [m]
+    (.trace (DenseDoubleAlgebra.) m))
+  (determinant [m]
+    (.det (DenseDoubleAlgebra.) m))
+  (inverse [m]
+    (.inverse (DenseDoubleAlgebra.) m))
+  (negate [m]
+    (element-multiply m -1))
+  (transpose [m]
+    (.transpose (DenseDoubleAlgebra.) m)))
 
 (imp/register-implementation (DenseDoubleMatrix2D. 2 2))
