@@ -1,12 +1,13 @@
 (ns parallel-colt-matrix.core
   (:use [core.matrix.protocols])
   (:require [core.matrix.implementations :as imp])
-  (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D])
+  (:import [cern.colt.matrix.tdouble DoubleMatrix2D])
+  (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D DiagonalDoubleMatrix2D DenseDoubleMatrix1D])
   (:import [cern.jet.math.tdouble DoubleFunctions])
   (:import [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
 
 
-(extend-type DenseDoubleMatrix2D
+(extend-type DoubleMatrix2D
   PImplementation
   (implementation-key [m]
     "Returns a keyword representing this implementation. 
@@ -77,17 +78,25 @@ I assumed 0 for colunms 1 for rows"
   (is-mutable? [m]
     true)
   
-  ;; PSpecialisedConstructors
-  ;; (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"
-  ;;   (DenseDoubleMatrix2D. dims dims)) ;;Ready just wait for
-  ;; protocols to be updated in clojars
-  ;; (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values") ;;TODO USE SPARSE ?
+  PSpecialisedConstructors
+  (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"
+    (DenseDoubleMatrix2D. dims dims)) ;;Square matrix
+  (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values"
+    (let [dim (count diagonal-values)
+          m (DiagonalDoubleMatrix2D. dim dim 0)]
+      (dotimes [i dim]
+        (.setQuick m i i (double (nth diagonal-values i))))
+      m))
 
   PCoercion
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."
-    nil)
+    (condp == (dimensionality param)
+      0 param
+      1 (DenseDoubleMatrix1D. (double-array param))
+      2 (construct-matrix m param)
+      :default (throw (Exception. "Need to be done"))))
   
   PMatrixEquality
   (matrix-equals [a b]
@@ -100,7 +109,7 @@ I assumed 0 for colunms 1 for rows"
 
   PMatrixMultiply
   (matrix-multiply [m a]
-    (.zMult m a nil))
+    (.zMult m (coerce-param m a) nil))
   (element-multiply [m a]
     (let [multiplier (. DoubleFunctions mult a)
           other (.copy m)]
