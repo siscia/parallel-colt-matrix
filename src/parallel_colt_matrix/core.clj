@@ -96,7 +96,7 @@ I assumed 0 for colunms 1 for rows"
       0 param
       1 (DenseDoubleMatrix1D. (double-array param))
       2 (construct-matrix m param)
-      :default (throw (Exception. "Need to be done"))))
+      (throw (Exception. "Need to be done"))))
   
   PMatrixEquality
   (matrix-equals [a b]
