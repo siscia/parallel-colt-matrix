@@ -14,7 +14,10 @@
     :parallel-colt)
   (construct-matrix [m data]
     "Returns a new matrix containing the given data. Data should be in the form of either nested sequences or a valid existing matrix"
-    (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data))))
+    (let [data (if-not (vector? data)
+                 (convert-to-nested-vectors data)
+                 data)]
+     (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data)))))
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length."
     (throw (Exception. "Only 2D matrix, use new-matrix")))
@@ -148,13 +151,19 @@ I assumed 0 for colunms 1 for rows"
 
   ;; PMathsFunctions ;;TODO
 
-  ;; PMatrixSlices ;;TODO
-  ;; "Protocol to support getting slices of a matrix"
-  ;; (get-row [m i])
-  ;; (get-column [m i])
-  ;; (get-major-slice [m i])
-  ;; (get-slice [m dimension i])
-
+  PMatrixSlices ;;TODO
+  (get-row [m i]
+    (-> (.viewRow m i) (.toArray) (vec))) ;; same as get-1d
+  (get-column [m i]
+    (-> (.viewColumn m i) (.toArray) (vec)))
+  (get-major-slice [m i]
+    (get-row m i)) ;; ???? DON'T GET IT
+  (get-slice [m dimension i]
+    (condp == dimension
+      0 (get-row m i)
+      1 (get-column m i)
+      (throw (Exception. "It is a 2D matrix, it only have 2 dimension"))))
+  
   ;; PFunctionalOperations  ;;TODO
   ;; "Protocol to allow functional-style operations on matrix elements."
   ;; ;; note that protocols don't like variadic args, so we convert to regular args
