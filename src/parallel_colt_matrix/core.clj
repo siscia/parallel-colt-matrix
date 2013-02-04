@@ -105,7 +105,8 @@ I assumed 0 for colunms 1 for rows"
      May return nil if unable to do so, in which case a default implementation can be used."
     (condp == (dimensionality param)
       0 param
-      1 (DenseDoubleMatrix1D. (double-array param))
+      1 (DenseDoubleMatrix1D. (double-array param))  ;;TODO wait to
+      ;;implement also 1D Matrix in PColt, good enough for now
       2 (construct-matrix m param)
       (throw (Exception. "Need to be done"))))
   
