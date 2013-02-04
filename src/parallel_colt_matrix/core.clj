@@ -6,6 +6,16 @@
   (:import [cern.jet.math.tdouble DoubleFunctions])
   (:import [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
 
+(defn vector-dimensionality ^long [m]
+  "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
+  (cond
+    (vector? m)
+    (loop [m m c 0]
+      (if (vector? m)
+        (recur (first m) (inc c))
+        c))
+    (satisfies? PDimensionInfo m) (long (dimensionality m))
+    :else (throw (Exception. (str "Don't know how to find dimension, " (class m) "is not a vactor nor it implement PDimensionInfo")))))
 
 (extend-type DoubleMatrix2D
   PImplementation
@@ -15,10 +25,11 @@
     :parallel-colt)
   (construct-matrix [m data]
     "Returns a new matrix containing the given data. Data should be in the form of either nested sequences or a valid existing matrix"
-    (let [data (if-not (vector? data)
-                 (convert-to-nested-vectors data)
-                 data)]
-     (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data)))))
+    (cond
+     (isa? DoubleMatrix2D data) data
+     (and (vector? data) (== 2 (vector-dimensionality data))) (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data)))
+     (satisfies? PConversion data) (construct-matrix m (convert-to-nested-vectors data))
+     :else (throw (Exception. (str "Don't know how to convert " (class data) "into a 2D vector, it need to implement the PCoversion.")))))
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length."
     (throw (Exception. "Only 2D matrix, use new-matrix")))
