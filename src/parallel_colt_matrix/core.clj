@@ -185,10 +185,15 @@ I assumed 0 for colunms 1 for rows"
       1 (get-column m i)
       (throw (Exception. "It is a 2D matrix, it only have 2 dimension"))))
   
-  ;; PFunctionalOperations  ;;TODO
+  PFunctionalOperations  ;;TODO
   ;; "Protocol to allow functional-style operations on matrix elements."
-  ;; ;; note that protocols don't like variadic args, so we convert to regular args
-  ;; (element-seq [m])
+  ;; ;; note that protocols don't like variadic args, so we convert to
+  ;; regularargs 
+  (element-seq [m]
+  (let [shape (get-shape m)]
+    (for [row (range (shape 0))
+          col (range (shape 1))]
+      (get-2d m row col))))
   ;; (element-map [m f]
   ;;              [m f a]
   ;;              [m f a more])
@@ -200,5 +205,12 @@ I assumed 0 for colunms 1 for rows"
   PConversion
   (convert-to-nested-vectors [m]
     (->> (.toArray m) (map vec) vec)))
+
+;; (defn element-s "just an idea, it does not work, it might be useful
+;;   for high dimension matrix"
+;;   [m]
+;;   (let [shape (get-shape m)]
+;;     (for [[row col] (map #(range %) (get-shape m))]
+;;       (get-2d m row col))))
 
 (imp/register-implementation (DenseDoubleMatrix2D. 2 2))
