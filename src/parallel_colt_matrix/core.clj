@@ -203,13 +203,21 @@ I assumed 0 for colunms 1 for rows"
        (let [fun (reify DoubleFunction
                    (apply [m n] (f n)))
              other (.copy m)]
-         (.assign other fun))))
-  (element-map
+         (.assign other fun)))
     ([m f a]
        (let [fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))
              other (.copy m)]
          (.assign other fun))))
+  (element-map!
+    ([m f]
+       (let [fun (reify DoubleFunction
+                   (apply [m n] (f n)))]
+         (.assign m fun)))
+    ([m f a]
+       (let [fun (reify DoubleDoubleFunction
+                   (apply [m n a] (f n a)))]
+         (.assign m fun))))
     
   ;; (element-map [m f]
   ;;              [m f a]
