@@ -190,10 +190,10 @@ I assumed 0 for colunms 1 for rows"
   ;; ;; note that protocols don't like variadic args, so we convert to
   ;; regularargs 
   (element-seq [m]
-  (let [shape (get-shape m)]
-    (for [row (range (shape 0))
-          col (range (shape 1))]
-      (get-2d m row col))))
+    (let [shape (get-shape m)]
+      (for [row (range (shape 0))
+            col (range (shape 1))]
+        (get-2d m row col))))
   (element-map
     ([m f]
        (let [fun (reify DoubleFunction
