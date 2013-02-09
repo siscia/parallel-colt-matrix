@@ -3,6 +3,7 @@
   (:require [core.matrix.implementations :as imp])
   (:import [cern.colt.matrix.tdouble DoubleMatrix2D])
   (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D DiagonalDoubleMatrix2D DenseDoubleMatrix1D])
+  (:import [cern.colt.function.tdouble DoubleFunction DoubleDoubleFunction])
   (:import [cern.jet.math.tdouble DoubleFunctions])
   (:import [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
 
@@ -16,6 +17,10 @@
         c))
     (satisfies? PDimensionInfo m) (long (dimensionality m))
     :else (throw (Exception. (str "Don't know how to find dimension, " (class m) "is not a vactor nor it implement PDimensionInfo")))))
+
+(extend DoubleMatrix2D
+  PImplementation
+  {:implementation-key (fn [_] :parallel-colt)})
 
 (extend-type DoubleMatrix2D
   PImplementation
@@ -40,7 +45,6 @@
     "Returns a new general matrix of the given shape.
      Shape must be a sequence of dimension sizes."
     (throw (Exception. "Only 2D matrix, use new-matrix")))
-
    (supports-dimensionality? [m dimensions]
      "Returns true if the implementation supports matrices with the given number of dimensions."
      (== 2 dimensions))
@@ -194,6 +198,19 @@ I assumed 0 for colunms 1 for rows"
     (for [row (range (shape 0))
           col (range (shape 1))]
       (get-2d m row col))))
+  (element-map
+    ([m f]
+       (let [fun (reify DoubleFunction
+                   (apply [m n] (f n)))
+             other (.copy m)]
+         (.assign other fun))))
+  (element-map
+    ([m f a]
+       (let [fun (reify DoubleDoubleFunction
+                   (apply [m n a] (f n a)))
+             other (.copy m)]
+         (.assign other fun))))
+    
   ;; (element-map [m f]
   ;;              [m f a]
   ;;              [m f a more])
@@ -212,5 +229,11 @@ I assumed 0 for colunms 1 for rows"
 ;;   (let [shape (get-shape m)]
 ;;     (for [[row col] (map #(range %) (get-shape m))]
 ;;       (get-2d m row col))))
+
+;; (defn map-over-nested [f ar]
+;;   (cond (> (vector-dimensionality ar) 1)
+;;           (map #(map-over-nested f %) ar)
+;;         (== 1 (vector-dimensionality ar))
+;;           (map f ar)))
 
 (imp/register-implementation (DenseDoubleMatrix2D. 2 2))
