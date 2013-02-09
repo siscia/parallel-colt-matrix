@@ -18,10 +18,6 @@
     (satisfies? PDimensionInfo m) (long (dimensionality m))
     :else (throw (Exception. (str "Don't know how to find dimension, " (class m) "is not a vactor nor it implement PDimensionInfo")))))
 
-(extend DoubleMatrix2D
-  PImplementation
-  {:implementation-key (fn [_] :parallel-colt)})
-
 (extend-type DoubleMatrix2D
   PImplementation
   (implementation-key [m]
