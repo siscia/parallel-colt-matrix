@@ -218,6 +218,11 @@ I assumed 0 for colunms 1 for rows"
        (let [fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))]
          (.assign m fun))))
+  (element-reduce
+    ([m f]
+       (reduce f (element-seq m)))
+    ([m f init]
+       (reduce f init (element-seq m))))
     
   ;; (element-map [m f]
   ;;              [m f a]
