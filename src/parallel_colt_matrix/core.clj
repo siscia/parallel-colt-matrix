@@ -3,6 +3,7 @@
   (:require [core.matrix.implementations :as imp])
   (:import [cern.colt.matrix.tdouble DoubleMatrix2D])
   (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D DiagonalDoubleMatrix2D DenseDoubleMatrix1D])
+  (:import [cern.colt.function.tdouble DoubleFunction DoubleDoubleFunction])
   (:import [cern.jet.math.tdouble DoubleFunctions])
   (:import [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
 
@@ -40,7 +41,6 @@
     "Returns a new general matrix of the given shape.
      Shape must be a sequence of dimension sizes."
     (throw (Exception. "Only 2D matrix, use new-matrix")))
-
    (supports-dimensionality? [m dimensions]
      "Returns true if the implementation supports matrices with the given number of dimensions."
      (== 2 dimensions))
@@ -185,10 +185,41 @@ I assumed 0 for colunms 1 for rows"
       1 (get-column m i)
       (throw (Exception. "It is a 2D matrix, it only have 2 dimension"))))
   
-  ;; PFunctionalOperations  ;;TODO
+  PFunctionalOperations  ;;TODO
   ;; "Protocol to allow functional-style operations on matrix elements."
-  ;; ;; note that protocols don't like variadic args, so we convert to regular args
-  ;; (element-seq [m])
+  ;; ;; note that protocols don't like variadic args, so we convert to
+  ;; regularargs 
+  (element-seq [m]
+    (let [shape (get-shape m)]
+      (for [row (range (shape 0))
+            col (range (shape 1))]
+        (get-2d m row col))))
+  (element-map
+    ([m f]
+       (let [fun (reify DoubleFunction
+                   (apply [m n] (f n)))
+             other (.copy m)]
+         (.assign other fun)))
+    ([m f a]
+       (let [fun (reify DoubleDoubleFunction
+                   (apply [m n a] (f n a)))
+             other (.copy m)]
+         (.assign other fun))))
+  (element-map!
+    ([m f]
+       (let [fun (reify DoubleFunction
+                   (apply [m n] (f n)))]
+         (.assign m fun)))
+    ([m f a]
+       (let [fun (reify DoubleDoubleFunction
+                   (apply [m n a] (f n a)))]
+         (.assign m fun))))
+  (element-reduce
+    ([m f]
+       (reduce f (element-seq m)))
+    ([m f init]
+       (reduce f init (element-seq m))))
+    
   ;; (element-map [m f]
   ;;              [m f a]
   ;;              [m f a more])
@@ -200,5 +231,18 @@ I assumed 0 for colunms 1 for rows"
   PConversion
   (convert-to-nested-vectors [m]
     (->> (.toArray m) (map vec) vec)))
+
+;; (defn element-s "just an idea, it does not work, it might be useful
+;;   for high dimension matrix"
+;;   [m]
+;;   (let [shape (get-shape m)]
+;;     (for [[row col] (map #(range %) (get-shape m))]
+;;       (get-2d m row col))))
+
+;; (defn map-over-nested [f ar]
+;;   (cond (> (vector-dimensionality ar) 1)
+;;           (map #(map-over-nested f %) ar)
+;;         (== 1 (vector-dimensionality ar))
+;;           (map f ar)))
 
 (imp/register-implementation (DenseDoubleMatrix2D. 2 2))
