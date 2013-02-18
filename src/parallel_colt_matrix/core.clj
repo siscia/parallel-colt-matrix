@@ -1,6 +1,6 @@
 (ns parallel-colt-matrix.core
-  (:use [core.matrix.protocols])
-  (:require [core.matrix.implementations :as imp])
+  (:use [clojure.core.matrix.protocols])
+  (:require [clojure.core.matrix.implementations :as imp])
   (:import [cern.colt.matrix.tdouble DoubleMatrix2D])
   (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D DiagonalDoubleMatrix2D DenseDoubleMatrix1D])
   (:import [cern.colt.function.tdouble DoubleFunction DoubleDoubleFunction])
@@ -10,13 +10,40 @@
 (defn vector-dimensionality ^long [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
   (cond
-    (vector? m)
+    (sequential? m)
     (loop [m m c 0]
-      (if (vector? m)
+      (if (sequential? m)
         (recur (first m) (inc c))
         c))
     (satisfies? PDimensionInfo m) (long (dimensionality m))
-    :else (throw (Exception. (str "Don't know how to find dimension, " (class m) "is not a vactor nor it implement PDimensionInfo")))))
+    :else (throw (Exception. (str "Don't know how to find dimension, " (class m) " is not a vector nor it implement PDimensionInfo")))))
+
+(defn step [cs]
+  (lazy-seq
+   (let [ss (map seq cs)]
+     (when (every? identity ss)
+       (cons (map first ss) (step (map rest ss)))))))
+
+(defn map-over-nested
+  ([f ar]
+     (if (> (vector-dimensionality ar) 1)
+       (mapv (fn [a] (map-over-nested f a)) ar)
+       (mapv f ar)))
+  ([f ar br]
+     (if (> (vector-dimensionality ar) 1)
+       (mapv (fn [a b] (map-over-nested f a b)) ar br)
+       (mapv f ar br)))
+  ([f ar br & more]
+     (println ar br more)
+     (if (> (vector-dimensionality ar) 1)
+       (do (pr "noproblemyet")
+           (apply (fn [& more] (map map-over-nested f more)) (cons ar (cons br more)))
+           (pr "gotproblem"))
+       (mapv #(apply f %) (step (conj more ar br))))))
+
+(defmacro a [f ar & more]
+  '(let [vecs (conj more ar)]
+       (println vecs ~@vecs)))
 
 (extend-type DoubleMatrix2D
   PImplementation
@@ -88,6 +115,26 @@ I assumed 0 for colunms 1 for rows"
     (throw (Exception. "It is a 2D matrix, no other dimension, use set-2d(!)")))
   (is-mutable? [m]
     true)
+
+  PIndexedSettingMutable
+  (set-1d! [m row v](throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
+  (set-2d! [m row column v]
+    (.set m row column v)
+    m)
+  (set-nd! [m indexes v]
+    (throw (Exception. "It is a 2D matrix, no other dimension, use set-2d(!)")))
+
+  PMatrixCloning
+  (clone [m]
+    (.copy m))
+
+  PTypeInfo  ;;I could do it way better I guess
+  (element-type [m]
+    (class (get-2d m 0 0)))
+
+  PZeroDimensionAccess
+  (get-0d [m])
+  (set-0d [m value])
   
   PSpecialisedConstructors
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"
@@ -109,15 +156,59 @@ I assumed 0 for colunms 1 for rows"
       ;;implement also 1D Matrix in PColt, good enough for now
       2 (construct-matrix m param)
       (throw (Exception. "Need to be done"))))
+
+  PBroadcast
+  (broadcast [m target-shape])
+
+  PConversion
+  (convert-to-nested-vectors [m]
+    (->> (.toArray m) (map vec) vec))
+
+  PReshaping
+  (reshape [m shape])
+
+ PMatrixSlices
+  (get-row [m i]
+    (-> (.viewRow m i) (.toArray) (vec))) ;; same as get-1d
+  (get-column [m i]
+    (-> (.viewColumn m i) (.toArray) (vec)))
+  (get-major-slice [m i]
+    (get-row m i)) ;; ???? DON'T GET IT
+  (get-slice [m dimension i]
+    (condp == dimension
+      0 (get-row m i)
+      1 (get-column m i)
+      (throw (Exception. "It is a 2D matrix, it only have 2 dimension"))))
+
+  PSliceView
+  (get-major-slice-view [m i])
+
+  PSliceSeq
+  (get-major-slice-seq [m])
+
+  PMatrixSubComponents
+  (main-diagonal [m])
+
+  PAssignment
+  (assign! [m source])
+  (assign-array!
+    ([m arr])
+    ([m arr start length]))
+
+  PDoubleArrayOutput
+  (to-double-array [m])
+  (as-double-array [m])
   
   PMatrixEquality
   (matrix-equals [a b]
-    (.equals a b))
-  
-  ;; PAssignment ;;TODO
-  ;; "Protocol for assigning values to mutable matrices."
-  ;; (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
-  ;; (assign! [m source] "Sets all the values in a matrix from a matrix source")
+    (cond (instance? DoubleMatrix2D b)
+          (.equals a b)
+          
+          (and (satisfies? PDimensionInfo b) (satisfies? PFunctionalOperations b))
+          (and (== (get-shape a) (get-shape b))
+               (== (element-seq a) (element-seq b))
+               true)
+          :else false))
 
   PMatrixMultiply
   (matrix-multiply [m a]
@@ -127,17 +218,18 @@ I assumed 0 for colunms 1 for rows"
           other (.copy m)]
       (.assign other multiplier)))
 
-  ;; PVectorTransform ;;TODO
-  ;; "Protocol to support transformation of a vector to another vector. 
-  ;;  Is equivalent to matrix multiplication when 2D matrices are used as transformations.
-  ;;  But other transformations are possible, e.g. affine transformations."
-  ;; (vector-transform [m v] "Transforms a vector")
-  ;; (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument")
-
+  PVectorTransform
+  (vector-transform [m v])
+  (vector-transform! [m v])
+  
   ;; PMatrixScaling ;;TODO
   ;; "Protocol to support matrix scaling by scalar values"
   ;; (scale [m a])
   ;; (pre-scale [m a])
+
+  PMatrixMutableScaling
+  (scale! [m a])
+  (pre-scale! [m a])
   
   PMatrixAdd
   (matrix-add [m a]
@@ -151,13 +243,6 @@ I assumed 0 for colunms 1 for rows"
           other (.copy m)]
       (.assign other a minus)))
 
-  ;; PVectorOps ;;TODO
-  ;; "Protocol to support common vector operations."
-  ;; (vector-dot [a b])
-  ;; (length [a])
-  ;; (length-squared [a])
-  ;; (normalise [a])
-
   PMatrixOps
   (trace [m]
     (.trace (DenseDoubleAlgebra.) m))
@@ -170,20 +255,9 @@ I assumed 0 for colunms 1 for rows"
   (transpose [m]
     (.transpose (DenseDoubleAlgebra.) m))
 
-  ;; PMathsFunctions ;;TODO
-
-  PMatrixSlices ;;TODO
-  (get-row [m i]
-    (-> (.viewRow m i) (.toArray) (vec))) ;; same as get-1d
-  (get-column [m i]
-    (-> (.viewColumn m i) (.toArray) (vec)))
-  (get-major-slice [m i]
-    (get-row m i)) ;; ???? DON'T GET IT
-  (get-slice [m dimension i]
-    (condp == dimension
-      0 (get-row m i)
-      1 (get-column m i)
-      (throw (Exception. "It is a 2D matrix, it only have 2 dimension"))))
+  PSummable
+  (element-sum [m]
+    (apply + (element-seq m)))
   
   PFunctionalOperations  ;;TODO
   ;; "Protocol to allow functional-style operations on matrix elements."
@@ -204,7 +278,11 @@ I assumed 0 for colunms 1 for rows"
        (let [fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))
              other (.copy m)]
-         (.assign other fun))))
+         (.assign other fun)))
+    ([m f a more]
+       (let [all (map convert-to-nested-vectors (list m a more))]
+         (println all)
+         (map-over-nested f (first all)))))
   (element-map!
     ([m f]
        (let [fun (reify DoubleFunction
@@ -226,11 +304,7 @@ I assumed 0 for colunms 1 for rows"
   ;; (element-map! [m f]
   ;;               [m f a]
   ;;               [m f a more])
-  ;; (element-reduce [m f] [m f init])
-
-  PConversion
-  (convert-to-nested-vectors [m]
-    (->> (.toArray m) (map vec) vec)))
+)
 
 ;; (defn element-s "just an idea, it does not work, it might be useful
 ;;   for high dimension matrix"
@@ -239,10 +313,10 @@ I assumed 0 for colunms 1 for rows"
 ;;     (for [[row col] (map #(range %) (get-shape m))]
 ;;       (get-2d m row col))))
 
-;; (defn map-over-nested [f ar]
-;;   (cond (> (vector-dimensionality ar) 1)
-;;           (map #(map-over-nested f %) ar)
-;;         (== 1 (vector-dimensionality ar))
-;;           (map f ar)))
+
+
+(defn get-matrix
+  ([] (DenseDoubleMatrix2D. 2 2))
+  ([data] (construct-matrix (get-matrix) data)))
 
 (imp/register-implementation (DenseDoubleMatrix2D. 2 2))
