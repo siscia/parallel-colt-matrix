@@ -278,7 +278,7 @@ I assumed 0 for colunms 1 for rows"
        (let [fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))
              other (.copy m)]
-         (.assign other fun)))
+         (.assign other a fun)))
     ([m f a more]
        (let [all (map convert-to-nested-vectors (list m a more))]
          (println all)
