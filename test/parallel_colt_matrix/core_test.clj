@@ -34,5 +34,17 @@
     (is (== (get-0d (set-0d! m 3)) 3.0))
     (is (== (get-0d m) 3.0))))
 
+(deftest MatrixSubComponents
+  (is (= (main-diagonal (pc/get-matrix [[1 2]
+                                        [3 4]])) '(1.0 4.0)))
+  (is (= (main-diagonal (pc/get-matrix [[1 2 3]
+                                        [4 5 6]])) '(1.0 5.0)))
+  (is (= (main-diagonal (pc/get-matrix [[1 2]
+                                        [3 4]
+                                        [5 6]])) '(1.0 4.0)))
+  (is (= (main-diagonal (pc/get-matrix [[1 2 3]
+                                        [4 5 6]
+                                        [7 8 9]])) '(1.0 5.0 9.0))))
+
   ;; (deftest test-2-2-sparse
   ;;   (compliance-test mpc)))
