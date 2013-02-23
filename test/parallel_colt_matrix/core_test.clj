@@ -46,5 +46,7 @@
                                         [4 5 6]
                                         [7 8 9]])) '(1.0 5.0 9.0))))
 
-  ;; (deftest test-2-2-sparse
-  ;;   (compliance-test mpc)))
+(deftest MatrixScaling-test
+  (is (= (scale (pc/get-matrix [[1 2] [3 4]]) 3) (pc/get-matrix [[3 6] [9 12]])))
+  (is (= (scale (pc/get-matrix [[1 2] [3 4]]) -1) (pc/get-matrix [[-1 -2] [-3 -4]])))
+  (is (= (scale (pc/get-matrix [[1 2] [3 4]]) 1.5) (pc/get-matrix [[1.5 3] [4.5 6]]))))
