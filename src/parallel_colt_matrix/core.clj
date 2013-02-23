@@ -192,7 +192,10 @@ I assumed 0 for colunms 1 for rows"
   (get-major-slice-seq [m])
 
   PMatrixSubComponents
-  (main-diagonal [m])
+  (main-diagonal [m]
+    (let [[row col] (get-shape m)]
+      (for [i (range (min row col))]
+        (get-2d m i i))))
 
   PAssignment
   (assign! [m source])
@@ -269,9 +272,9 @@ I assumed 0 for colunms 1 for rows"
   ;; ;; note that protocols don't like variadic args, so we convert to
   ;; regularargs 
   (element-seq [m]
-    (let [shape (get-shape m)]
-      (for [row (range (shape 0))
-            col (range (shape 1))]
+    (let [[row col] (get-shape m)]
+      (for [row (range row)
+            col (range col)]
         (get-2d m row col))))
   (element-map
     ([m f]
