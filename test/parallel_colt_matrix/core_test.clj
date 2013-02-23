@@ -28,5 +28,11 @@
   (is (= (construct-matrix mpc [[11] [22] [33]]) (element-map (construct-matrix mpc [[1] [2] [3]]) #(* 11 %))))
   (is (= (construct-matrix mpc [[11] [22] [33]]) (element-map (construct-matrix mpc [[1] [2] [3]]) + (construct-matrix mpc [[10] [20] [30]])))))
 
+(deftest ZeroDimensionAccess-test
+  (let [m (construct-matrix mpc [[1]])]
+    (is (== (get-0d m) 1.0))
+    (is (== (get-0d (set-0d! m 3)) 3.0))
+    (is (== (get-0d m) 3.0))))
+
   ;; (deftest test-2-2-sparse
   ;;   (compliance-test mpc)))
