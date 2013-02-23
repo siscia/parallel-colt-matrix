@@ -50,3 +50,14 @@
   (is (= (scale (pc/get-matrix [[1 2] [3 4]]) 3) (pc/get-matrix [[3 6] [9 12]])))
   (is (= (scale (pc/get-matrix [[1 2] [3 4]]) -1) (pc/get-matrix [[-1 -2] [-3 -4]])))
   (is (= (scale (pc/get-matrix [[1 2] [3 4]]) 1.5) (pc/get-matrix [[1.5 3] [4.5 6]]))))
+
+(deftest MatrixMutableScaling-test
+  (let [m (pc/get-matrix [[1 2] [3 4]])]
+    (is (= (pc/get-matrix [[2 4] [6 8]]) (scale! m 2)))
+    (is (= (pc/get-matrix [[2 4] [6 8]]) m))
+    (is (= (pc/get-matrix [[1 2] [3 4]]) (scale! m 1/2)))
+    (is (= (pc/get-matrix [[1 2] [3 4]]) m))
+    (is (= (scale m 3) (scale! m 3)) "Testing consistency between scale and scale!")
+    (is (not= (scale (pc/get-matrix [[1 2] [3 4]]) 2) (scale m 2)) "m is now different from the start")
+    (is (not= (pc/get-matrix [[1 2] [3 4]]) m))))
+
