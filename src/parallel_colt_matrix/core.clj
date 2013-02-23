@@ -117,7 +117,8 @@ I assumed 0 for colunms 1 for rows"
     true)
 
   PIndexedSettingMutable
-  (set-1d! [m row v](throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
+  (set-1d! [m row v]
+    (throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
   (set-2d! [m row column v]
     (.set m row column v)
     m)
@@ -133,8 +134,12 @@ I assumed 0 for colunms 1 for rows"
     (class (get-2d m 0 0)))
 
   PZeroDimensionAccess
-  (get-0d [m])
-  (set-0d [m value])
+  (get-0d [m]
+    (when (= [1 1] (get-shape m))
+      (get-2d m 0 0)))
+  (set-0d! [m value]
+    (when (= [1 1] (get-shape m))
+      (set-2d! m 0 0 value)))
   
   PSpecialisedConstructors
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"
@@ -291,7 +296,7 @@ I assumed 0 for colunms 1 for rows"
     ([m f a]
        (let [fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))]
-         (.assign m fun))))
+         (.assign m a fun))))
   (element-reduce
     ([m f]
        (reduce f (element-seq m)))
