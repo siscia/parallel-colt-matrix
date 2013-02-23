@@ -244,8 +244,8 @@ I assumed 0 for colunms 1 for rows"
 
   PMatrixMutableScaling
   (scale! [m a]
-    (let [multiplier (. DoubleFunctions mult a)]
-      (.assign m multiplier)))
+    (let [multi (. DoubleFunctions mult a)]
+      (.assign m multi)))
   (pre-scale! [m a])
   
   PMatrixAdd
