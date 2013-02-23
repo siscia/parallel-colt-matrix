@@ -170,7 +170,14 @@ I assumed 0 for colunms 1 for rows"
     (->> (.toArray m) (map vec) vec))
 
   PReshaping
-  (reshape [m shape])
+  (reshape [m shape]
+   "Must preserve row-major ordering of matrix elements. 
+   If the original matrix is mutable, must return a new mutable copy of data.
+   If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
+   If the new shape requires more elements than the original shape, should throw an exception."
+    (let [[row col] (get-shape m)
+          [new-row new-col] shape]
+      ))
 
  PMatrixSlices
   (get-row [m i]
@@ -230,13 +237,15 @@ I assumed 0 for colunms 1 for rows"
   (vector-transform [m v])
   (vector-transform! [m v])
   
-  ;; PMatrixScaling ;;TODO
-  ;; "Protocol to support matrix scaling by scalar values"
-  ;; (scale [m a])
-  ;; (pre-scale [m a])
+  PMatrixScaling
+  (scale [m a]
+    (element-multiply m a))
+  (pre-scale [m a])
 
   PMatrixMutableScaling
-  (scale! [m a])
+  (scale! [m a]
+    (let [multiplier (. DoubleFunctions mult a)]
+      (.assign m multiplier)))
   (pre-scale! [m a])
   
   PMatrixAdd
