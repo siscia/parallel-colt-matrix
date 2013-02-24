@@ -212,8 +212,22 @@ I assumed 0 for colunms 1 for rows"
     ([m arr start length]))
 
   PDoubleArrayOutput
-  (to-double-array [m])
-  (as-double-array [m])
+  (to-double-array [m]
+    "Returns a double array containing the values of m in row-major order. May or may not be
+     the internal double array used by m, depending on the implementation."
+    (.toArray m))
+  (as-double-array [m]
+    "Returns the internal double array used by m. If no such array is used, returns nil.
+     Provides an opportunity to avoid copying the internal array."
+    (.elements m)
+    ;; (let [elem (.elements m)
+    ;;       [row col] (get-shape m)
+    ;;       new-array (make-array (element-type m) row col)]
+    ;;   (dotimes [i row]
+    ;;     (dotimes [j col]
+    ;;       (aset new-array i j (aget elem (+ i j)))))
+    ;;   new-array)
+    )
   
   PMatrixEquality
   (matrix-equals [a b]
@@ -221,8 +235,8 @@ I assumed 0 for colunms 1 for rows"
           (.equals a b)
           
           (and (satisfies? PDimensionInfo b) (satisfies? PFunctionalOperations b))
-          (and (== (get-shape a) (get-shape b))
-               (== (element-seq a) (element-seq b))
+          (and (= (get-shape a) (get-shape b))
+               (= (element-seq a) (element-seq b))
                true)
           :else false))
 
