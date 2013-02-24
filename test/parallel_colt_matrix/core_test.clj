@@ -61,3 +61,11 @@
     (is (not= (scale (pc/get-matrix [[1 2] [3 4]]) 2) (scale m 2)) "m is now different from the start")
     (is (not= (pc/get-matrix [[1 2] [3 4]]) m))))
 
+(deftest Reshaping-test
+  (let [m (pc/get-matrix [[1 2 3] [4 5 6]])]
+    (is (= (reshape m [2 2]) (pc/get-matrix [[1 2]
+                                             [3 4]])))
+    (is (= (reshape m [2 3]) (pc/get-matrix [[1 2]
+                                             [3 4]
+                                             [5 6]])))
+    (is (thrown? AssertionError (reshape m [2 4])))))
