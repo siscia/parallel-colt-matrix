@@ -175,9 +175,9 @@ I assumed 0 for colunms 1 for rows"
    If the original matrix is mutable, must return a new mutable copy of data.
    If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
    If the new shape requires more elements than the original shape, should throw an exception."
-    (let [[row col] (get-shape m)
-          [new-row new-col] shape]
-      ))
+    (assert (== 2 (count shape)))
+    (assert (>= (reduce * (get-shape m)) (reduce * shape)))
+    (construct-matrix m (vec (take (shape 1) (partition (shape 0) (element-seq m))))))
 
  PMatrixSlices
   (get-row [m i]
