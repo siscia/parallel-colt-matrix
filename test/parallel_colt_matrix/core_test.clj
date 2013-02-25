@@ -69,3 +69,6 @@
                                              [3 4]
                                              [5 6]])))
     (is (thrown? AssertionError (reshape m [2 4])))))
+
+(deftest compilance-testing
+  (clojure.core.matrix.compliance-tester/compliance-test (pc/get-matrix [[1 2] [3 4]])))
