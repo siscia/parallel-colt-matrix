@@ -213,21 +213,12 @@ I assumed 0 for colunms 1 for rows"
 
   PDoubleArrayOutput
   (to-double-array [m]
-    "Returns a double array containing the values of m in row-major order. May or may not be
-     the internal double array used by m, depending on the implementation."
-    (.toArray m))
+    "Returns a double array containing the values of m in row-major order. May or may not be the internal double array used by m, depending on the implementation."
+    (.elements (.copy m))) ;;It does an effort to don't return the
+  ;;underneath internal element
   (as-double-array [m]
-    "Returns the internal double array used by m. If no such array is used, returns nil.
-     Provides an opportunity to avoid copying the internal array."
-    (.elements m)
-    ;; (let [elem (.elements m)
-    ;;       [row col] (get-shape m)
-    ;;       new-array (make-array (element-type m) row col)]
-    ;;   (dotimes [i row]
-    ;;     (dotimes [j col]
-    ;;       (aset new-array i j (aget elem (+ i j)))))
-    ;;   new-array)
-    )
+    "Returns the internal double array used by m. If no such array is used, returns nil. Provides an opportunity to avoid copying the internal array."
+    (.elements m))
   
   PMatrixEquality
   (matrix-equals [a b]
