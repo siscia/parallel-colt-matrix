@@ -1,0 +1,7 @@
+/.project
+/.classpath
+/classes
+/.settings
+/bin
+/target
+/.lein*

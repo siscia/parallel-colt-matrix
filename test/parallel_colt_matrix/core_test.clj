@@ -69,7 +69,6 @@
                                              [3 4]
                                              [5 6]])))
     (is (thrown? AssertionError (reshape m [2 4])))))
-
 (deftest DoubleArrayOutput-test
   (let [m (pc/get-matrix [[1 2 3] [4 5 6]])
         ar (double-array (flatten [[1 2 3] [4 5 6]]))]
@@ -80,3 +79,6 @@
     (aset (to-double-array m) 2 53.0)
     (is (not= m (pc/get-matrix [[1 42 53] [4 5 6]])) "Check correct use of TO-double-array")
     (is (= m (pc/get-matrix [[1 42 3] [4 5 6]])))))
+
+(deftest compilance-testing
+  (clojure.core.matrix.compliance-tester/compliance-test (pc/get-matrix [[1 2] [3 4]])))
