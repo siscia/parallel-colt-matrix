@@ -69,3 +69,14 @@
                                              [3 4]
                                              [5 6]])))
     (is (thrown? AssertionError (reshape m [2 4])))))
+
+(deftest DoubleArrayOutput-test
+  (let [m (pc/get-matrix [[1 2 3] [4 5 6]])
+        ar (double-array (flatten [[1 2 3] [4 5 6]]))]
+    (is (= (seq ar) (seq (as-double-array m))))
+    (is (= (seq ar) (seq (to-double-array m))))
+    (aset (as-double-array m) 1 42.0)
+    (is (= m (pc/get-matrix [[1 42 3] [4 5 6]])) "Check if it really change the underneath array")
+    (aset (to-double-array m) 2 53.0)
+    (is (not= m (pc/get-matrix [[1 42 53] [4 5 6]])) "Check correct use of TO-double-array")
+    (is (= m (pc/get-matrix [[1 42 3] [4 5 6]])))))
