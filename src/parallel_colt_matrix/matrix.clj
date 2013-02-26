@@ -1,22 +1,23 @@
-(ns parallel-colt-matrix.core
+(ns parallel-colt-matrix.matrix
   (:use [clojure.core.matrix.protocols])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:import [cern.colt.matrix.tdouble DoubleMatrix2D])
-  (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D DiagonalDoubleMatrix2D DenseDoubleMatrix1D])
-  (:import [cern.colt.function.tdouble DoubleFunction DoubleDoubleFunction])
-  (:import [cern.jet.math.tdouble DoubleFunctions])
-  (:import [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
+  (:import [cern.colt.matrix.tdouble DoubleMatrix2D]
+           [cern.colt.matrix.tdouble.impl DenseDoubleMatrix2D DiagonalDoubleMatrix2D DenseDoubleMatrix1D]
+           [cern.colt.function.tdouble DoubleFunction DoubleDoubleFunction]
+           [cern.jet.math.tdouble DoubleFunctions]
+           [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]
+           [cern.colt.matrix AbstractMatrix2D]))
 
 (defn vector-dimensionality ^long [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
   (cond
-    (sequential? m)
-    (loop [m m c 0]
-      (if (sequential? m)
-        (recur (first m) (inc c))
-        c))
-    (satisfies? PDimensionInfo m) (long (dimensionality m))
-    :else (throw (Exception. (str "Don't know how to find dimension, " (class m) " is not a vector nor it implement PDimensionInfo")))))
+   (sequential? m)
+   (loop [m m c 0]
+     (if (sequential? m)
+       (recur (first m) (inc c))
+       c))
+   (satisfies? PDimensionInfo m) (long (dimensionality m))
+   :else (throw (Exception. (str "Don't know how to find dimension, " (class m) " is not a vector nor it implement PDimensionInfo")))))
 
 (defn step [cs]
   (lazy-seq
@@ -45,7 +46,7 @@
   '(let [vecs (conj more ar)]
        (println vecs ~@vecs)))
 
-(extend-type DoubleMatrix2D
+(extend-type AbstractMatrix2D
   PImplementation
   (implementation-key [m]
     "Returns a keyword representing this implementation. 
@@ -215,7 +216,7 @@ I assumed 0 for colunms 1 for rows"
   (to-double-array [m]
     "Returns a double array containing the values of m in row-major order. May or may not be the internal double array used by m, depending on the implementation."
     (.elements (.copy m))) ;;It does an effort to don't return the
-  ;;underneath internal element
+  ;;underneath internal element, this is around 3x time slower
   (as-double-array [m]
     "Returns the internal double array used by m. If no such array is used, returns nil. Provides an opportunity to avoid copying the internal array."
     (.elements m))
@@ -238,10 +239,6 @@ I assumed 0 for colunms 1 for rows"
     (let [multiplier (. DoubleFunctions mult a)
           other (.copy m)]
       (.assign other multiplier)))
-
-  PVectorTransform
-  (vector-transform [m v])
-  (vector-transform! [m v])
   
   PMatrixScaling
   (scale [m a]
@@ -266,6 +263,16 @@ I assumed 0 for colunms 1 for rows"
           other (.copy m)]
       (.assign other a minus)))
 
+  PMatrixAddMutable
+  (matrix-add! [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [sum (. DoubleFunctions plus)]
+      (.assign m a sum)))
+  (matrix-sub! [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [minus (. DoubleFunctions minus)]
+      (.assign m a minus)))
+  
   PMatrixOps
   (trace [m]
     (.trace (DenseDoubleAlgebra.) m))
