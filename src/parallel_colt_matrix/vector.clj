@@ -3,7 +3,6 @@
   (:import [cern.colt.matrix AbstractMatrix1D]
            [cern.colt.matrix.tdouble.impl DenseDoubleMatrix1D]))
 
-
 (extend-type AbstractMatrix1D
   PImplementation
   (implementation-key [m]
@@ -43,7 +42,8 @@
   PIndexedSetting
   (set-1d [m row v]
     (let [other (.copy m)]
-      (.set other row v)))
+      (.set other row v)
+      other))
   (set-2d [m row col v]
     (throw (Exception. "It is a vector with just one dimension, use set-1d")))
   (set-nd [m indexes v]
@@ -73,7 +73,27 @@
     (get-1d m 0))
   (set-0d! [m value]
     (assert (= 1 (get-shape m)))
-    (set-1d! m 0 value)))
+    (set-1d! m 0 value))
+
+  PCoercion
+  (coerce-param [m param]
+    (let [param (flatten param)]
+      (construct-matrix m param)))
+
+  PBroadcast
+  (broadcast [m target-shape]
+    nil)
+
+  PConversion
+  (convert-to-nested-vectors [m]
+    (vec (.elements m)))
+
+  PSubVector
+  (subvector [m start len]
+    (let [v (convert-to-nested-vectors m)]
+      (->> (subvec v start (+ start len))
+           (construct-matrix m ))))
+  )
 
 (defn get-vector
   ([] (DenseDoubleMatrix1D. 4))
