@@ -55,9 +55,10 @@
   (construct-matrix [m data]
     "Returns a new matrix containing the given data. Data should be in the form of either nested sequences or a valid existing matrix"
     (cond
-     (isa? DoubleMatrix2D data) data
-     (and (vector? data) (== 2 (vector-dimensionality data))) (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data)))
-     (satisfies? PConversion data) (construct-matrix m (convert-to-nested-vectors data))
+     (isa? DoubleMatrix2D data) data ,
+     (and (vector? data) (== 2 (vector-dimensionality data)))
+     (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data))) ,
+     (satisfies? PConversion data) (construct-matrix m (convert-to-nested-vectors data)) ,
      :else (throw (Exception. (str "Don't know how to convert " (class data) "into a 2D vector, it need to implement the PCoversion.")))))
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length."
@@ -136,8 +137,8 @@ I assumed 0 for colunms 1 for rows"
 
   PZeroDimensionAccess
   (get-0d [m]
-    (when (= [1 1] (get-shape m))
-      (get-2d m 0 0)))
+    (assert (= [1 1] (get-shape m)))
+    (get-2d m 0 0))
   (set-0d! [m value]
     (when (= [1 1] (get-shape m))
       (set-2d! m 0 0 value)))
@@ -164,7 +165,8 @@ I assumed 0 for colunms 1 for rows"
       (throw (Exception. "Need to be done"))))
 
   PBroadcast
-  (broadcast [m target-shape])
+  (broadcast [m target-shape]
+    nil)
 
   PConversion
   (convert-to-nested-vectors [m]
