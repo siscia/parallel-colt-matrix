@@ -79,4 +79,9 @@
                            convert-to-nested-vectors))))
 
 (deftest SubVector-test
-  (is (= (pcv/get-vector [2 3]) (subvector v 1 2))))
+  (is (= (pcv/get-vector [2 3]) (subvector v 1 2)))
+  (let [vpc (pcv/get-vector (range 10))]
+    (is (= (pcv/get-vector [3 4 5 6]) (subvector vpc 3 4)))
+    (is (= (pcv/get-vector [5 6 7]) (subvector vpc 5 3))))
+  (is (thrown? Exception (subvector v 5 1)))
+  (is (thrown? Exception (subvector v 2 6))))
