@@ -16,7 +16,7 @@
 
 (deftest DimensionInfo-test
   (is (= 1 (dimensionality v)))
-  (is (= 4 (get-shape v)))
+  (is (= [4] (get-shape v)))
   (is (not (is-scalar? v)))
   (is (is-vector? v))
   (is (= 4 (dimension-count v 1))))
@@ -85,3 +85,15 @@
     (is (= (pcv/get-vector [5 6 7]) (subvector vpc 5 3))))
   (is (thrown? Exception (subvector v 5 1)))
   (is (thrown? Exception (subvector v 2 6))))
+
+(deftest Assigment-test
+  (let [vpc (pcv/get-vector [1 2 3])]
+    (is (= (pcv/get-vector [6 7 8]) (assign! vpc [6 7 8])))
+    (is (= (pcv/get-vector [10 11 12]) (assign! vpc [[10 [11] 12]])))
+    (is (not= vpc (pcv/get-vector [1 2 3])))
+    (is (thrown? IllegalArgumentException (assign! vpc [1 2])))
+    (is (thrown? IllegalArgumentException (assign! vpc [1 2 3 4])))
+    (is (= (pcv/get-vector [1 2 3]) (assign-array! vpc [[1 2 3]])))
+    (is (= (pcv/get-vector [3 4 5]) (assign-array! vpc [[1 2] [3 4] [5 6]] 2 3)
+)
+)))

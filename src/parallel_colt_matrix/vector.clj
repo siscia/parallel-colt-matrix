@@ -22,14 +22,14 @@
   (dimensionality [m]
     1)
   (get-shape [m]
-    (.size m))
+    [(.size m)])
   (is-scalar? [m]
     false)
   (is-vector? [m]
     true)
   (dimension-count [m dimension-number]
     (assert (supports-dimensionality? m dimension-number))
-    (get-shape m))
+    (.size m))
 
   PIndexedAccess
   (get-1d [m row]
@@ -69,10 +69,12 @@
 
   PZeroDimensionAccess
   (get-0d [m]
-    (assert (= 1 (get-shape m)))
+    (assert (== 1 (dimension-count m 1)))
+    (assert (= [1] (get-shape m)))
     (get-1d m 0))
   (set-0d! [m value]
-    (assert (= 1 (get-shape m)))
+    (assert (== 1 (dimension-count m 1)))
+    (assert (= [1] (get-shape m)))
     (set-1d! m 0 value))
 
   PCoercion
@@ -93,6 +95,16 @@
     (let [v (convert-to-nested-vectors m)]
       (->> (subvec v start (+ start len))
            (construct-matrix m ))))
+
+  PAssignment
+  (assign! [m source]
+    ;; auto-check in the java class
+    (.assign m (into-array Double/TYPE (flatten source))))
+  (assign-array!
+    ([m arr]
+       (assign! m  arr))
+    ([m arr start length]
+       (assign! m (subvec (vec (flatten arr)) start (+ start length)))))
   )
 
 (defn get-vector
