@@ -94,6 +94,13 @@
     (is (thrown? IllegalArgumentException (assign! vpc [1 2])))
     (is (thrown? IllegalArgumentException (assign! vpc [1 2 3 4])))
     (is (= (pcv/get-vector [1 2 3]) (assign-array! vpc [[1 2 3]])))
-    (is (= (pcv/get-vector [3 4 5]) (assign-array! vpc [[1 2] [3 4] [5 6]] 2 3)
-)
-)))
+    (is (= (pcv/get-vector [3 4 5]) (assign-array! vpc [[1 2] [3 4] [5 6]] 2 3)))))
+
+(deftest DoubleArrayOutput-test
+  (let [vpc (pcv/get-vector [1 2 3])]
+    (is (= (vec (to-double-array vpc)) (vec (as-double-array vpc))))
+    (is (= (vec (to-double-array vpc)) (vec (double-array [1 2 3]))))
+    (aset (as-double-array vpc) 1 42.0)
+    (is (= (pcv/get-vector [1 42 3]) vpc))
+    (aset (to-double-array vpc) 1 24.0)
+    (is (= (pcv/get-vector [1 42 3]) vpc))))
