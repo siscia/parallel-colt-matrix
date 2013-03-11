@@ -116,6 +116,23 @@
      Provides an opportunity to avoid copying the internal array."
     (.elements m))
 
+  PMatrixEquality
+  (matrix-equals [a b]
+    (cond (instance? AbstractMatrix1D)
+          (.equals a b)
+          (and (satisfies? PDimensionInfo b) (satisfies? PFunctionalOperations b))
+          (and (= (get-shape a) (get-shape b))
+               (= (element-seq a) (element-seq b)))
+          :else false))
+
+  PMatrixMultiply
+  (matrix-multiply [m a]
+    nil)
+  
+  PFunctionalOperations
+  (element-seq [m]
+    (for [i (range (dimension-count m 1))]
+      (get-1d m i)))
 )
 
 (defn get-vector
