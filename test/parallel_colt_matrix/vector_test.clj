@@ -104,3 +104,22 @@
     (is (= (pcv/get-vector [1 42 3]) vpc))
     (aset (to-double-array vpc) 1 24.0)
     (is (= (pcv/get-vector [1 42 3]) vpc))))
+
+(deftest MatrixEquality-test
+  (is (= (pcv/get-vector [1 2 3]) (pcv/get-vector [1 2 3])))
+  (is (= (construct-matrix v [2 3 4]) (pcv/get-vector [2 3 4])))
+  (is (matrix-equals (pcv/get-vector [1 2 3]) [1.0 2.0 3.0]))
+  (is (matrix-equals (pcv/get-vector [1 2 3]) (pcv/get-vector [1 2 3])))
+  (is (matrix-equals (construct-matrix v [2 3 4]) (pcv/get-vector [2 3 4]))))
+
+(deftest MatrixScaling-test
+  (let [h (pcv/get-vector [1 2 3])]
+    (is (= (scale h 2) (pcv/get-vector [2 4 6])))
+    (is (= (scale h -1) (pcv/get-vector [-1 -2 -3])))))
+
+(deftest MatrixMutableScaling-test
+  (let [h (pcv/get-vector [1 2 3])]
+    (scale! h 2)
+    (is (= h (pcv/get-vector [2 4 6])))
+    (is (not= h (pcv/get-vector [1 2 3])))
+    (is (= (scale! h -2) (pcv/get-vector [-4 -8 -12])))))
