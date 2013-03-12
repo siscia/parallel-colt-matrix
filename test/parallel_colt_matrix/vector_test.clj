@@ -123,3 +123,28 @@
     (is (= h (pcv/get-vector [2 4 6])))
     (is (not= h (pcv/get-vector [1 2 3])))
     (is (= (scale! h -2) (pcv/get-vector [-4 -8 -12])))))
+
+(deftest VectorCross-test
+  (is (= -1.0 (cross-product (pcv/get-vector [1 2]) (pcv/get-vector [2 3]))))
+  (is (= -251.0 (cross-product (pcv/get-vector [1 5]) (pcv/get-vector [43 -36]))))
+  (is (= (pcv/get-vector [-3 6 -3])
+         (cross-product (pcv/get-vector [1 2 3])
+                        (pcv/get-vector [4 5 6]))))
+  (is (= (pcv/get-vector [4 -8 4])
+         (cross-product (pcv/get-vector [3 2 1])
+                        (pcv/get-vector [1 2 3]))))
+  (is (thrown? Exception (cross-product
+                          (pcv/get-vector [1 2 3 4])
+                          (pcv/get-vector [1 2 3 4]))))
+  (is (thrown? Exception (cross-product
+                          (pcv/get-vector [1 2])
+                          (pcv/get-vector [1 2 3]))))
+  (is (thrown? Exception (cross-product
+                          (pcv/get-vector [1 2 4])
+                          (pcv/get-vector [1]))))
+  (let [a (pcv/get-vector [1 2])
+        b (pcv/get-vector [1 2 3])]
+    (cross-product! a (pcv/get-vector [2 3]))
+    (is (= a (pcv/get-vector [-1 -1]))) ;;Not sure if this is right, it has to be either documented or deleted
+    (cross-product! b (pcv/get-vector [9 8 7]))
+    (is (= b (pcv/get-vector [-10 20 -10])))))
