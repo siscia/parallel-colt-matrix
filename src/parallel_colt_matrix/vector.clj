@@ -1,7 +1,8 @@
 (ns parallel-colt-matrix.vector
   (:use [clojure.core.matrix.protocols])
   (:import [cern.colt.matrix AbstractMatrix1D]
-           [cern.colt.matrix.tdouble.impl DenseDoubleMatrix1D]))
+           [cern.colt.matrix.tdouble.impl DenseDoubleMatrix1D]
+           [cern.jet.math.tdouble DoubleFunctions]))
 
 (extend-type AbstractMatrix1D
   PImplementation
@@ -125,9 +126,23 @@
                (= (element-seq a) (element-seq b)))
           :else false))
 
+  PVectorTransform
+  (vector-transform [m v])
+  (vector-transform! [m v])
+
   PMatrixMultiply
-  (matrix-multiply [m a]
-    nil)
+  (element-multiply [m a]
+    (let [multiplier (. DoubleFunctions mult a)
+          other (.copy m)]
+      (.assign other multiplier)))
+
+  PMatrixScaling
+  (scale [m a]
+    (element-multiply m a))
+
+  PMatrixMutableScaling
+  (scale! [m a]
+    (.assign m (. DoubleFunctions mult a)))
   
   PFunctionalOperations
   (element-seq [m]
