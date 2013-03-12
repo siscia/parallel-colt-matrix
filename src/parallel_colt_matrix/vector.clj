@@ -2,7 +2,12 @@
   (:use [clojure.core.matrix.protocols])
   (:import [cern.colt.matrix AbstractMatrix1D]
            [cern.colt.matrix.tdouble.impl DenseDoubleMatrix1D]
-           [cern.jet.math.tdouble DoubleFunctions]))
+           [cern.jet.math.tdouble DoubleFunctions]
+           [cern.colt.matrix.tdouble.algo DenseDoubleAlgebra]))
+
+(defn get-vector
+  ([] (DenseDoubleMatrix1D. 4))
+  ([data] (construct-matrix (get-vector) data)))
 
 (extend-type AbstractMatrix1D
   PImplementation
@@ -143,13 +148,42 @@
   PMatrixMutableScaling
   (scale! [m a]
     (.assign m (. DoubleFunctions mult a)))
-  
+
+  PVectorOps
+  (vector-dot [a b]
+     "Dot product of two vectors. Should return a scalar value."
+    (.zDotProduct a b))
+  (length [a]
+     "Euclidian length of a vector."
+    (.norm2 (DenseDoubleAlgebra.) a))
+  (length-squared [a]
+     "Squared Euclidean length of a vector."
+    (Math/sqrt (length a)))
+  (normalise [a]
+    "Returns a new vector, normalised to length 1.0"
+    (.normalize a))
+
+  PVectorCross
+  (cross-product [a b]
+    "Cross product of two vectors"
+    (condp = (mapv get-shape [a b])
+      [[2] [2]] (let [[a1 a2] (element-seq a)
+                  [b1 b2] (element-seq b)]
+              (- (* a1 b2) (* a2 b1)))
+      [[3] [3]] (let [[a1 a2 a3] (element-seq a)
+                  [b1 b2 b3] (element-seq b)]
+              (get-vector [(- (* a2 b3) (* a3 b2))
+                           (- (* a3 b1) (* a1 b3))
+                           (- (* a1 b2) (* a2 b1))]))
+      :else (throw (Exception. "The cross product need the vector to be of the same dimension of either 2 or 3"))))
+  (cross-product! [a b]
+    "Calculate cross product of two vectors, storing the result in the first vector"
+    (.assign a (cross-product a b)))
+
   PFunctionalOperations
   (element-seq [m]
     (for [i (range (dimension-count m 1))]
       (get-1d m i)))
-)
 
-(defn get-vector
-  ([] (DenseDoubleMatrix1D. 4))
-  ([data] (construct-matrix (get-vector) data)))
+  )
+
