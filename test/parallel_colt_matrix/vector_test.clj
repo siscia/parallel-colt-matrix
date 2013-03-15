@@ -124,6 +124,31 @@
     (is (not= h (pcv/get-vector [1 2 3])))
     (is (= (scale! h -2) (pcv/get-vector [-4 -8 -12])))))
 
+(deftest VectorOps-test ;;Values form wolframalpha
+  (is (= 26.0
+         (vector-dot (pcv/get-vector [1 2 3]) (pcv/get-vector [3 4 5]))
+         (vector-dot (pcv/get-vector [3 4 5]) (pcv/get-vector [1 2 3]))))
+  (is (= 142.0
+         (vector-dot (pcv/get-vector [9 8 7]) (pcv/get-vector [5 6 7]))
+         (vector-dot (pcv/get-vector [5 6 7]) (pcv/get-vector [9 8 7]))))
+
+  (is (= (Math/sqrt 110)
+         (length (pcv/get-vector [5 6 7]))
+         (length (pcv/get-vector [6 7 5]))))
+  (is (= (Math/sqrt 255)
+         (length (pcv/get-vector [5 6 7 8 9]))
+         (length (pcv/get-vector [5 9 6 8 7]))))
+
+  (is (= 1 1))
+
+  (is (= (pcv/get-vector [(/ 1 (Math/sqrt 14))
+                          (/ 2 (Math/sqrt 14))
+                          (/ 3 (Math/sqrt 14))])
+         (normalise (pcv/get-vector [1 2 3]))))
+
+  
+  )
+
 (deftest VectorCross-test
   (is (= -1.0 (cross-product (pcv/get-vector [1 2]) (pcv/get-vector [2 3]))))
   (is (= -251.0 (cross-product (pcv/get-vector [1 5]) (pcv/get-vector [43 -36]))))
@@ -148,3 +173,24 @@
     (is (= a (pcv/get-vector [-1 -1]))) ;;Not sure if this is right, it has to be either documented or deleted
     (cross-product! b (pcv/get-vector [9 8 7]))
     (is (= b (pcv/get-vector [-10 20 -10])))))
+
+;;;; finish VectorOps-test
+
+(deftest MatrixAdd-test
+  (is (= (pcv/get-vector [2 4 6])
+         (matrix-add (pcv/get-vector [1 2 3]) (pcv/get-vector [1 2 3]))))
+  (is (= (pcv/get-vector [-3 -5 -4])
+         (matrix-add (pcv/get-vector [0 0 0]) (pcv/get-vector [-3 -5 -4]))))
+  (is (= (pcv/get-vector [0 0 0])
+         (matrix-sub (pcv/get-vector [1 2 3]) (pcv/get-vector [1 2 3]))))
+  (is (= (pcv/get-vector [3 5 4])
+         (matrix-sub (pcv/get-vector [0 0 0]) (pcv/get-vector [-3 -5 -4])))))
+
+(deftest MatrixAddMutable-test
+  (let [a (pcv/get-vector [1 2 3])]
+    (matrix-add! a (pcv/get-vector [4 5 6]))
+    (is (not= a (pcv/get-vector [1 2 3])))
+    (is (= a (pcv/get-vector [5 7 9])))
+    (matrix-sub! a (pcv/get-vector [4 5 6]))
+    (is (not= a (pcv/get-vector [5 7 9])))
+    (is (= a (pcv/get-vector [1 2 3])))))
