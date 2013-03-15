@@ -161,7 +161,8 @@
     (Math/sqrt (length a)))
   (normalise [a]
     "Returns a new vector, normalised to length 1.0"
-    (.normalize a))
+    (.normalize a)
+    a)
 
   PVectorCross
   (cross-product [a b]
@@ -176,10 +177,34 @@
                            (- (* a3 b1) (* a1 b3))
                            (- (* a1 b2) (* a2 b1))]))
       :else (throw (Exception. "The cross product need the vector to be of the same dimension of either 2 or 3"))))
-  (cross-product! [a b]
+  (cross-product! [a b] ;; Possible error or not expected behaviour in case of 2dimension vector that return a single element
     "Calculate cross product of two vectors, storing the result in the first vector"
-    (.assign a (cross-product a b)))
+    (.assign a (cross-product a b))) 
 
+;;;; add VectorOps-test
+
+  PMatrixAdd
+  (matrix-add [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [sum (. DoubleFunctions plus)
+          other (.copy m)]
+      (.assign other a sum)))
+  (matrix-sub [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [minus (. DoubleFunctions minus)
+          other (.copy m)]
+      (.assign other a minus)))
+
+  PMatrixAddMutable
+  (matrix-add! [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [sum (. DoubleFunctions plus)]
+      (.assign m a sum)))
+  (matrix-sub! [m a]
+    (assert (= (get-shape m) (get-shape a)))
+    (let [minus (. DoubleFunctions minus)]
+      (.assign m a minus)))
+  
   PFunctionalOperations
   (element-seq [m]
     (for [i (range (dimension-count m 1))]
