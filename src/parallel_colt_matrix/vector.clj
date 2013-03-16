@@ -149,40 +149,6 @@
   (scale! [m a]
     (.assign m (. DoubleFunctions mult a)))
 
-  PVectorOps
-  (vector-dot [a b]
-     "Dot product of two vectors. Should return a scalar value."
-    (.zDotProduct a b))
-  (length [a]
-     "Euclidian length of a vector."
-    (.norm2 (DenseDoubleAlgebra.) a))
-  (length-squared [a]
-     "Squared Euclidean length of a vector."
-    (Math/sqrt (length a)))
-  (normalise [a]
-    "Returns a new vector, normalised to length 1.0"
-    (.normalize a)
-    a)
-
-  PVectorCross
-  (cross-product [a b]
-    "Cross product of two vectors"
-    (condp = (mapv get-shape [a b])
-      [[2] [2]] (let [[a1 a2] (element-seq a)
-                  [b1 b2] (element-seq b)]
-              (- (* a1 b2) (* a2 b1)))
-      [[3] [3]] (let [[a1 a2 a3] (element-seq a)
-                  [b1 b2 b3] (element-seq b)]
-              (get-vector [(- (* a2 b3) (* a3 b2))
-                           (- (* a3 b1) (* a1 b3))
-                           (- (* a1 b2) (* a2 b1))]))
-      :else (throw (Exception. "The cross product need the vector to be of the same dimension of either 2 or 3"))))
-  (cross-product! [a b] ;; Possible error or not expected behaviour in case of 2dimension vector that return a single element
-    "Calculate cross product of two vectors, storing the result in the first vector"
-    (.assign a (cross-product a b))) 
-
-;;;; add VectorOps-test
-
   PMatrixAdd
   (matrix-add [m a]
     (assert (= (get-shape m) (get-shape a)))
@@ -205,6 +171,44 @@
     (let [minus (. DoubleFunctions minus)]
       (.assign m a minus)))
   
+  PVectorOps
+  (vector-dot [a b]
+     "Dot product of two vectors. Should return a scalar value."
+    (.zDotProduct a b))
+  (length [a]
+     "Euclidian length of a vector."
+    (.norm2 (DenseDoubleAlgebra.) a))
+  (length-squared [a]
+     "Squared Euclidean length of a vector."
+    (.mult (DenseDoubleAlgebra.) a a))
+  (normalise [a]
+    "Returns a new vector, normalised to length 1.0"
+    (let [other (.copy a)]
+      (.normalize other)
+      other))
+
+  PVectorCross
+  (cross-product [a b]
+    "Cross product of two vectors"
+    (condp = (mapv get-shape [a b])
+      [[2] [2]] (let [[a1 a2] (element-seq a)
+                  [b1 b2] (element-seq b)]
+              (- (* a1 b2) (* a2 b1)))
+      [[3] [3]] (let [[a1 a2 a3] (element-seq a)
+                  [b1 b2 b3] (element-seq b)]
+              (get-vector [(- (* a2 b3) (* a3 b2))
+                           (- (* a3 b1) (* a1 b3))
+                           (- (* a1 b2) (* a2 b1))]))
+      :else (throw (Exception. "The cross product need the vector to be of the same dimension of either 2 or 3"))))
+  (cross-product! [a b] ;; Possible error or not expected behaviour in case of 2dimension vector that return a single element
+    "Calculate cross product of two vectors, storing the result in the first vector"
+    (.assign a (cross-product a b))) 
+
+  PMutableVectorOps
+  (normalise! [a]
+    (.normalize a)
+    a)
+  
   PFunctionalOperations
   (element-seq [m]
     (for [i (range (dimension-count m 1))]
@@ -212,3 +216,4 @@
 
   )
 
+;;;; add VectorOps-test
