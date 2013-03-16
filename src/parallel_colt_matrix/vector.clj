@@ -1,5 +1,6 @@
 (ns parallel-colt-matrix.vector
-  (:use [clojure.core.matrix.protocols])
+  (:use [clojure.core.matrix.protocols]
+        [parallel-colt-matrix.matrix :only [get-matrix]])
   (:import [cern.colt.matrix AbstractMatrix1D]
            [cern.colt.matrix.tdouble.impl DenseDoubleMatrix1D]
            [cern.jet.math.tdouble DoubleFunctions]
@@ -208,6 +209,19 @@
   (normalise! [a]
     (.normalize a)
     a)
+
+  PMatrixOps
+  (inverse [m]
+    (get-vector (reverse (element-seq m))))
+  (negate [m]
+    (element-multiply m -1))
+  (transpose [m]
+    (get-matrix (reduce #(conj %1 (vector %2)) [] (element-seq m))))
+
+  PSummable
+  (element-sum [m]
+    (apply + (element-seq m)))
+
   
   PFunctionalOperations
   (element-seq [m]
