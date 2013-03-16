@@ -2,7 +2,8 @@
   (:use [clojure.test]
         [clojure.core.matrix.protocols]
         [clojure.core.matrix.compliance-tester])
-  (:require [parallel-colt-matrix.vector :as pcv])
+  (:require [parallel-colt-matrix.vector :as pcv]
+            [parallel-colt-matrix.matrix :as pcm])
   (:import [cern.colt.matrix.tdouble.impl DenseDoubleMatrix1D]))
 
 (def values [1.0 2.0 3.0 4.0])
@@ -205,4 +206,12 @@
     (is (not= a (pcv/get-vector [4 5 6])))
     (is (= a (normalise (pcv/get-vector [4 5 6]))))))
 
-;;;; finish VectorOps-test
+(deftest MatrixOps-test
+  (let [a (pcv/get-vector [1 2 3 4 5 6])]
+    (is (= (inverse a) (pcv/get-vector [6 5 4 3 2 1])))
+    (is (= (negate a) (pcv/get-vector [-1 -2 -3 -4 -5 -6])))
+    (is (= (transpose a) (pcm/get-matrix [[1] [2] [3] [4] [5] [6]])))))
+
+(deftest Summable
+  (is (= 6.0 (element-sum (pcv/get-vector [1 2 3]))))
+  (is (= -3.0 (element-sum (pcv/get-vector [-6 1 2])))))
