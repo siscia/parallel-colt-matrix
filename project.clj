@@ -10,4 +10,5 @@
   :profiles {:dev                                                               
              {:dependencies                                                     
               [[criterium "0.3.1"] ;; Benchmarking
-               ]}})
+               ]}}
+  :warn-on-reflection true)
