@@ -221,6 +221,11 @@
   PSummable
   (element-sum [m]
     (apply + (element-seq m)))
+  (element-reduce
+    ([m f]
+       (reduce f (element-seq m)))
+    ([m f init]
+       (reduce f init (element-seq m))))
 
   
   PFunctionalOperations

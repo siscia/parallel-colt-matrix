@@ -57,7 +57,7 @@
     (cond
      (isa? DoubleMatrix2D data) data ,
      (and (vector? data) (== 2 (vector-dimensionality data)))
-     (DenseDoubleMatrix2D. (into-array (map #(into-array Double/TYPE (map double %)) data))) ,
+     (DenseDoubleMatrix2D. ^"[[D"  (into-array (map #(into-array Double/TYPE (map double %)) data))) ,
      (satisfies? PConversion data) (construct-matrix m (convert-to-nested-vectors data)) ,
      :else (throw (Exception. (str "Don't know how to convert " (class data) "into a 2D vector, it need to implement the PCoversion.")))))
   (new-vector [m length]
@@ -98,9 +98,9 @@ I assumed 0 for colunms 1 for rows"
 
   PIndexedAccess
   (get-1d [m row]
-    (-> (.viewRow m row) (.toArray) (vec)))
+    (-> (.viewRow ^DenseDoubleMatrix2D m row) (.toArray) (vec)))
   (get-2d [m row column]
-    (.get m row column))
+    (.get ^DoubleMatrix2D m row column))
   (get-nd [m indexes]
     (throw (Exception. "It is only a 2D Array")))
 
@@ -108,8 +108,8 @@ I assumed 0 for colunms 1 for rows"
   (set-1d [m row v]
     (throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
   (set-2d [m row column v]
-    (let [other (.copy m)]  ;;Keeping immutability
-      (.set other row column v)
+    (let [other (.copy ^DenseDoubleMatrix2D m)]  ;;Keeping immutability
+      (.set ^DenseDoubleMatrix2D other ^ints row ^ints column ^doubles v)
       other)) ;;We could use .setQuick but then we need
   ;;to add a pre-condition to check if the index is in the bound, and
   ;;I guess it will be slower than simply use .set
@@ -122,7 +122,7 @@ I assumed 0 for colunms 1 for rows"
   (set-1d! [m row v]
     (throw (Exception. "It is a 2D matrix, specify another dimension, use set-2d(!)")))
   (set-2d! [m row column v]
-    (.set m row column v)
+    (.set ^DenseDoubleMatrix2D m ^ints row ^ints column ^doubles v)
     m)
   (set-nd! [m indexes v]
     (throw (Exception. "It is a 2D matrix, no other dimension, use set-2d(!)")))
@@ -236,11 +236,11 @@ I assumed 0 for colunms 1 for rows"
 
   PMatrixMultiply
   (matrix-multiply [m a]
-    (.zMult m (coerce-param m a) nil))
+    (.zMult ^DenseDoubleMatrix2D m ^DenseDoubleMatrix2D (coerce-param m a) nil))
   (element-multiply [m a]
     (let [multiplier (. DoubleFunctions mult a)
-          other (.copy m)]
-      (.assign other multiplier)))
+          other (.copy ^DenseDoubleMatrix2D m)]
+      (.assign ^DenseDoubleMatrix2D other multiplier)))
   
   PMatrixScaling
   (scale [m a]
@@ -250,30 +250,26 @@ I assumed 0 for colunms 1 for rows"
   PMatrixMutableScaling
   (scale! [m a]
     (let [multi (. DoubleFunctions mult a)]
-      (.assign m multi)))
+      (.assign ^DenseDoubleMatrix2D m multi)))
   (pre-scale! [m a])
   
   PMatrixAdd
-  (matrix-add [m a]
-    (assert (= (get-shape m) (get-shape a)))
+  (matrix-add ^DenseDoubleMatrix2D [m ^DenseDoubleMatrix2D a]
     (let [sum (. DoubleFunctions plus)
-          other (.copy m)]
-      (.assign other a sum)))
-  (matrix-sub [m a]
-    (assert (= (get-shape m) (get-shape a)))
+          other (.copy ^DenseDoubleMatrix2D m)]
+      (.assign ^DenseDoubleMatrix2D other ^DenseDoubleMatrix2D a sum)))
+  (matrix-sub ^DenseDoubleMatrix2D [m ^DenseDoubleMatrix2D a]
     (let [minus (. DoubleFunctions minus)
-          other (.copy m)]
-      (.assign other a minus)))
+          other (.copy ^DenseDoubleMatrix2D m)]
+      (.assign ^DenseDoubleMatrix2D other ^DenseDoubleMatrix2D a minus)))
 
   PMatrixAddMutable
   (matrix-add! [m a]
-    (assert (= (get-shape m) (get-shape a)))
     (let [sum (. DoubleFunctions plus)]
-      (.assign m a sum)))
+      (.assign ^DenseDoubleMatrix2D m ^DenseDoubleMatrix2D a sum)))
   (matrix-sub! [m a]
-    (assert (= (get-shape m) (get-shape a)))
     (let [minus (. DoubleFunctions minus)]
-      (.assign m a minus)))
+      (.assign ^DenseDoubleMatrix2D m ^DenseDoubleMatrix2D a minus)))
   
   PMatrixOps
   (trace [m]
