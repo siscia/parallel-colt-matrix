@@ -4,6 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [mikera/core.matrix "0.0.7"]
+                 [net.mikera/core.matrix "0.4.1"]
                  [net.sourceforge.parallelcolt/parallelcolt "0.10.0"]
-                 [org.clojure/tools.nrepl "0.2.0"]])
+                 [org.clojure/tools.nrepl "0.2.0"]]
+  :profiles {:dev                                                               
+             {:dependencies                                                     
+              [[criterium "0.3.1"] ;; Benchmarking
+               ]}}
+  :warn-on-reflection true)
