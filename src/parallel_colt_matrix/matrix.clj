@@ -92,7 +92,7 @@
 I assumed 0 for colunms 1 for rows"
     (assert (< dimension-number 3))
     (assert (>= dimension-number 0))
-    (case dimension-number
+    (case (long dimension-number)
       0 (.rows m)
       1 (.columns m)))
 
@@ -298,12 +298,12 @@ I assumed 0 for colunms 1 for rows"
         (get-2d m row col))))
   (element-map
     ([m f]
-       (let [fun (reify DoubleFunction
+       (let [^DoubleFunction fun (reify DoubleFunction
                    (apply [m n] (f n)))
              other (.copy m)]
          (.assign other fun)))
     ([m f a]
-       (let [fun (reify DoubleDoubleFunction
+       (let [^DoubleFunction fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))
              other (.copy m)]
          (.assign other a fun)))
@@ -313,11 +313,11 @@ I assumed 0 for colunms 1 for rows"
          (map-over-nested f (first all)))))
   (element-map!
     ([m f]
-       (let [fun (reify DoubleFunction
+       (let [^DoubleFunction fun (reify DoubleFunction
                    (apply [m n] (f n)))]
          (.assign m fun)))
     ([m f a]
-       (let [fun (reify DoubleDoubleFunction
+       (let [^DoubleFunction fun (reify DoubleDoubleFunction
                    (apply [m n a] (f n a)))]
          (.assign m a fun))))
   (element-reduce
