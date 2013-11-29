@@ -208,9 +208,9 @@
 
 (deftest MatrixOps-test
   (let [a (pcv/get-vector [1 2 3 4 5 6])]
-    (is (= (inverse a) (pcv/get-vector [6 5 4 3 2 1])))
+    (is (== 1 (dimensionality a)))
     (is (= (negate a) (pcv/get-vector [-1 -2 -3 -4 -5 -6])))
-    (is (= (transpose a) (pcm/get-matrix [[1] [2] [3] [4] [5] [6]])))))
+    (is (= (transpose a) a))))
 
 (deftest Summable
   (is (= 6.0 (element-sum (pcv/get-vector [1 2 3]))))
